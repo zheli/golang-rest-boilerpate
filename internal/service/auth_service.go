@@ -116,7 +116,7 @@ func (s *AuthService) FindOrCreateOAuthUser(ctx context.Context, name, email, pr
 	return user, nil
 }
 
-// generateToken creates a JWT for the supplied user.
+// GenerateToken creates a JWT for the supplied user.
 func (s *AuthService) GenerateToken(user *models.User) (string, error) {
 	claims := &Claims{
 		UserID: user.ID.String(),
