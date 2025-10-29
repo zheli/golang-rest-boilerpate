@@ -39,9 +39,9 @@ func SetupRouter(authHandler *handlers.AuthHandler, userHandler *handlers.UserHa
 	users := api.Group("/users")
 	users.Use(middleware.AuthMiddleware(authService))
 	users.GET("", userHandler.List)
-	users.GET(":id", userHandler.Get)
-	users.PUT(":id", userHandler.Update)
-	users.DELETE(":id", userHandler.Delete)
+	users.GET("/:id", userHandler.Get)
+	users.PUT("/:id", userHandler.Update)
+	users.DELETE("/:id", userHandler.Delete)
 
 	return r
 }
