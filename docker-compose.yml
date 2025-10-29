@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      APP_PORT: 8080
+      DATABASE_URL: postgres://postgres:postgres@db:5432/app?sslmode=disable
+      JWT_SECRET: super-secret-key
+      JWT_ISSUER: golang-rest-boilerplate
+      TOKEN_EXPIRE_MINUTES: 60
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    profiles: ["prod"]
+
+  app-dev:
+    image: golang:1.21
+    working_dir: /app
+    command: go run ./cmd/server
+    environment:
+      APP_PORT: 8080
+      DATABASE_URL: postgres://postgres:postgres@db:5432/app?sslmode=disable
+      JWT_SECRET: dev-secret
+      JWT_ISSUER: golang-rest-boilerplate
+      TOKEN_EXPIRE_MINUTES: 60
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8080/api/v1/auth/google/callback}
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    profiles: ["dev"]
+
+volumes:
+  postgres_data:
