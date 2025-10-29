@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"github.com/example/golang-rest-boilerplate/internal/http/middleware"
 	"github.com/example/golang-rest-boilerplate/internal/service"
 	"github.com/example/golang-rest-boilerplate/pkg/response"
 )
@@ -23,11 +22,6 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 
 // List returns all users.
 func (h *UserHandler) List(c *gin.Context) {
-	if middleware.GetClaims(c) == nil {
-		response.Error(c, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-
 	users, err := h.userService.List(c.Request.Context())
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
@@ -39,11 +33,6 @@ func (h *UserHandler) List(c *gin.Context) {
 
 // Get retrieves a single user by ID.
 func (h *UserHandler) Get(c *gin.Context) {
-	if middleware.GetClaims(c) == nil {
-		response.Error(c, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid user id")
@@ -65,11 +54,6 @@ type updateUserRequest struct {
 
 // Update modifies the user's name.
 func (h *UserHandler) Update(c *gin.Context) {
-	if middleware.GetClaims(c) == nil {
-		response.Error(c, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid user id")
@@ -93,11 +77,6 @@ func (h *UserHandler) Update(c *gin.Context) {
 
 // Delete removes a user account.
 func (h *UserHandler) Delete(c *gin.Context) {
-	if middleware.GetClaims(c) == nil {
-		response.Error(c, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid user id")
