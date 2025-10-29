@@ -16,6 +16,8 @@ type AuthHandler struct {
 	googleService *service.GoogleOAuthService
 }
 
+const oauthStateCookieName = "oauth_state"
+
 // NewAuthHandler creates a new AuthHandler instance.
 func NewAuthHandler(authService *service.AuthService, googleService *service.GoogleOAuthService) *AuthHandler {
 	return &AuthHandler{authService: authService, googleService: googleService}
@@ -75,6 +77,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 
 	state := uuid.NewString()
 	url := h.googleService.AuthCodeURL(state)
+	c.SetCookie(oauthStateCookieName, state, 300, "/", "", false, true)
 	response.JSON(c, http.StatusOK, gin.H{"auth_url": url, "state": state})
 }
 
@@ -84,6 +87,25 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		response.Error(c, http.StatusServiceUnavailable, "google oauth is not configured")
 		return
 	}
+
+	state := c.Query("state")
+	if state == "" {
+		response.Error(c, http.StatusBadRequest, "state query param missing")
+		return
+	}
+
+	cookieState, err := c.Cookie(oauthStateCookieName)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "oauth state cookie missing or expired")
+		return
+	}
+
+	if cookieState != state {
+		response.Error(c, http.StatusBadRequest, "invalid oauth state")
+		return
+	}
+
+	c.SetCookie(oauthStateCookieName, "", -1, "/", "", false, true)
 
 	code := c.Query("code")
 	if code == "" {
